@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-white text-gray-900;
+  }
+
+  input,
+  textarea,
+  select {
+    @apply text-gray-900;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body {
+      @apply bg-gray-900 text-white;
+    }
+
+    input,
+    textarea,
+    select {
+      @apply bg-gray-800 text-white border-gray-600;
+    }
+  }
+}
