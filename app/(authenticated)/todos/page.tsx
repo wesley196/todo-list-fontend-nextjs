@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useTodos } from "@/hooks/useTodos";
+import { Todo } from "@/lib/types";
 import { TodoItem } from "@/components/TodoItem";
 import { Pagination } from "@/components/Pagination";
 import { FilterBar } from "@/components/FilterBar";
@@ -24,6 +25,7 @@ export default function TodosPage() {
     error,
     fetchTodos,
     createTodo,
+    updateTodo,
     deleteTodo,
     toggleComplete,
     filters,
@@ -36,6 +38,7 @@ export default function TodosPage() {
   } = useTodos();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTodo, setEditingTodo] = useState<Todo | undefined>(undefined);
   const [creatingTodo, setCreatingTodo] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
@@ -55,6 +58,30 @@ export default function TodosPage() {
     } finally {
       setCreatingTodo(false);
     }
+  };
+
+  const handleEditTodo = async (title: string, description: string) => {
+    if (!editingTodo) return;
+    setCreatingTodo(true);
+    try {
+      await updateTodo(editingTodo.id, { title, description });
+      setAlertMessage("Todo updated successfully!");
+      setTimeout(() => setAlertMessage(null), 3000);
+    } catch (err) {
+      // Error already shown by hook
+    } finally {
+      setCreatingTodo(false);
+    }
+  };
+
+  const openEditModal = (todo: Todo) => {
+    setEditingTodo(todo);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingTodo(undefined);
   };
 
   const handleDeleteTodo = async (id: number) => {
@@ -113,7 +140,7 @@ export default function TodosPage() {
         <div className="flex gap-4 items-center justify-between flex-wrap">
           <Button
             variant="primary"
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => { setEditingTodo(undefined); setIsModalOpen(true); }}
           >
             Create Todo
           </Button>
@@ -152,6 +179,7 @@ export default function TodosPage() {
               todo={todo}
               onToggle={toggleComplete}
               onDelete={handleDeleteTodo}
+              onEdit={openEditModal}
               isDeleting={deletingId === todo.id}
             />
           ))}
@@ -172,9 +200,10 @@ export default function TodosPage() {
       {/* Modal */}
       <TodoModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleCreateTodo}
+        onClose={closeModal}
+        onSubmit={editingTodo ? handleEditTodo : handleCreateTodo}
         isLoading={creatingTodo}
+        todo={editingTodo}
       />
     </div>
   );

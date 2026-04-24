@@ -1,10 +1,11 @@
 /**
- * Modal component for creating todos
+ * Modal component for creating and editing todos
  */
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Todo } from "@/lib/types";
 import { Input } from "./Input";
 import { Button } from "./Button";
 
@@ -13,6 +14,7 @@ interface TodoModalProps {
   onClose: () => void;
   onSubmit: (title: string, description: string) => Promise<void>;
   isLoading?: boolean;
+  todo?: Todo;
 }
 
 export function TodoModal({
@@ -20,10 +22,21 @@ export function TodoModal({
   onClose,
   onSubmit,
   isLoading = false,
+  todo,
 }: TodoModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const isEditing = !!todo;
+
+  useEffect(() => {
+    if (isOpen) {
+      setTitle(todo?.title ?? "");
+      setDescription(todo?.description ?? "");
+      setError(null);
+    }
+  }, [isOpen, todo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,11 +49,9 @@ export function TodoModal({
 
     try {
       await onSubmit(title.trim(), description.trim());
-      setTitle("");
-      setDescription("");
       onClose();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to create todo";
+      const errorMessage = err instanceof Error ? err.message : isEditing ? "Failed to update todo" : "Failed to create todo";
       setError(errorMessage);
     }
   };
@@ -52,7 +63,9 @@ export function TodoModal({
       <div className="bg-white rounded-lg shadow-2xl max-w-md w-full">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">Create New Todo</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {isEditing ? "Edit Todo" : "Create New Todo"}
+          </h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
@@ -110,7 +123,7 @@ export function TodoModal({
               isLoading={isLoading}
               className="flex-1"
             >
-              Create
+              {isEditing ? "Save" : "Create"}
             </Button>
           </div>
         </form>

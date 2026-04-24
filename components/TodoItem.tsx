@@ -12,6 +12,7 @@ interface TodoItemProps {
   todo: Todo;
   onToggle: (id: number, isCompleted: boolean) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
+  onEdit: (todo: Todo) => void;
   isDeleting?: boolean;
 }
 
@@ -19,6 +20,7 @@ export function TodoItem({
   todo,
   onToggle,
   onDelete,
+  onEdit,
   isDeleting = false,
 }: TodoItemProps) {
   const [isUpdating, setIsUpdating] = useState(false);
@@ -63,6 +65,15 @@ export function TodoItem({
           📅 {new Date(todo.created_at).toLocaleDateString()}
         </p>
       </div>
+
+      <Button
+          onClick={() => onEdit(todo)}
+          variant="secondary"
+          disabled={isDeleting || isUpdating}
+          className="whitespace-nowrap flex-shrink-0"
+        >
+          Edit
+        </Button>
 
       <Button
         onClick={handleDelete}
